@@ -10,7 +10,6 @@
 (defvar my-elisp-path (expand-file-name "my.elisp" my-emacs-home))
 (defvar my-config-path (expand-file-name "my.config" my-emacs-home))
 (defvar my-data-path (expand-file-name "my.data" my-emacs-home))
-
 ;; ------------------- MEASURE --------------------------------
 ;; measure the loading time per file.
 (defvar wcy-profile-startup '())
@@ -119,6 +118,7 @@
 	  ("q" . keyboard-quit)
 	  ("u" . backward-up-list)
 	  ("C-w" . kill-region)
+          ("!" . shell-command)
 	  ("w" . kill-region)
 	  ("x" . kill-region)
 	  ("y" . (lambda(b e)
@@ -393,9 +393,157 @@ main(_) ->
               "msync@localhost"
               "-hidden"
               ))
+ ;; (setq compile-command "cd ~/d/working/ejabberd; make -k")
   (setenv "ERL_ROOT" erlang-root-dir)
   (setq user-mail-address (or (getenv "EMAIL") ""))
   (setq erlang-skel-mail-address user-mail-address)
+;;==erlangmy=====================
+(setq auto-save-default nil);关闭备份文件#xxx# 
+(global-set-key "\M-p"  'bs-cycle-previous)
+(global-set-key "\M-n"  'bs-cycle-next)
+(set-face-foreground 'highlight "white")
+(set-face-background 'highlight "blue")
+(set-face-foreground 'region "cyan")
+(set-face-background 'region "blue")
+(set-face-foreground 'secondary-selection "skyblue")
+(set-face-background 'secondary-selection "darkblue")
+(set-foreground-color "grey")
+(set-background-color "black")
+(set-cursor-color "gold1")
+(set-mouse-color "gold1")
+;设置标题
+(setq frame-title-format
+        '("  dp - Emacs   -   [ " (buffer-file-name "%f \]"
+                (dired-directory dired-directory "%b \]"))))
+;设置启动大小
+(set-frame-size (selected-frame) 170 44)
+(setq inhibit-startup-message t);关闭起动时LOGO
+(setq visible-bell t);关闭出错时的提示声
+(setq default-major-mode 'erlang-mode);一打开就起用 text 模式
+(global-font-lock-mode t);语法高亮 
+(auto-image-file-mode t);打开图片显示功能 
+(fset 'yes-or-no-p 'y-or-n-p);以 y/n代表 yes/no 
+(column-number-mode t);显示列号 
+(show-paren-mode t);显示括号匹配 
+(setq mouse-yank-at-point t);支持中键粘贴 
+(transient-mark-mode t);允许临时设置标记 
+(setq x-select-enable-clipboard t);支持emacs和外部程序的粘贴 
+;;-----kill ring 长度
+(setq kill-ring-max 200)
+         
+(require 'linum)
+(global-linum-mode 1)
+;;--------------------------快捷键定义------------------------
+(global-set-key [(f12)] 'loop-alpha)  ;;玻璃
+;;定义查找快捷键
+(global-set-key [f5] 'replace-regexp) ;;支持正则表达式
+(global-set-key [f6] 'replace-string)
+(global-set-key [f8] 'flymake-goto-prev-error)
+(global-set-key [f9] 'flymake-goto-next-error)
+
+;;-------------------------------全选---------------------
+
+
+(defun select-all ()
+  "Select the whole buffer."
+  (interactive)
+  (goto-char (point-min))
+  ;; Mark current position and push it into the mark ring.
+  (push-mark-command nil nil)
+  (goto-char (point-max))
+  (message "ok."))
+
+(provide 'select-all)
+
+(autoload 'select-all "select-all"
+  "Select the whole buffer." t nil)
+
+;; user defined keys
+
+(global-set-key "\C-x\C-a" 'select-all)
+
+;;-------------------glass style------------------
+
+
+(setq alpha-list '((85 55) (100 100)))  
+  
+(defun loop-alpha ()  
+  (interactive)  
+  (let ((h (car alpha-list)))                  
+    ((lambda (a ab)  
+       (set-frame-parameter (selected-frame) 'alpha (list a ab))  
+       (add-to-list 'default-frame-alist (cons 'alpha (list a ab)))  
+       ) (car h) (car (cdr h)))  
+    (setq alpha-list (cdr (append alpha-list (list h))))  
+    ))  
+;===flymake=======================
+(require 'flymake)
+(defun flymake-erlang-init ()
+  (let* ((temp-file (flymake-init-create-temp-buffer-copy
+		     'flymake-create-temp-inplace))
+	 (local-file (file-relative-name temp-file
+		(file-name-directory buffer-file-name))))
+    (list "/home/zjh/d/working/wcy_dot_emacs/erlang_eflymake.sh" (list local-file))))
+
+(add-to-list 'flymake-allowed-file-name-masks '("\\.erl\\'" flymake-erlang-init))
+(add-hook 'find-file-hook 'flymake-find-file-hook)
+
+
+(custom-set-faces
+ '(flymake-errline ((((class color)) (:underline "red"))))
+ '(flymake-warnline ((((class color)) (:underline "yellow")))))
+  ;; flymake
+(defun my-flymake-show-next-error()
+    (interactive)
+    (flymake-goto-next-error)
+    (flymake-display-err-menu-for-current-line)
+    )
+ (local-set-key "\C-c\C-v" 'my-flymake-show-next-error)
+
+
+;----
+(defvar my-flymake-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\M-p" 'flymake-goto-prev-error)
+    (define-key map "\M-n" 'flymake-goto-next-error)
+    map)
+  "Keymap for my flymake minor mode.")
+(global-set-key [F8] 'flymake-goto-prev-error)
+(global-set-key [F9] 'flymake-goto-next-error)
+(defun my-flymake-err-at (pos)
+  (let ((overlays (overlays-at pos)))
+    (remove nil
+            (mapcar (lambda (overlay)
+                      (and (overlay-get overlay 'flymake-overlay)
+                           (overlay-get overlay 'help-echo)))
+                    overlays))))
+
+(defun my-flymake-err-echo ()
+  (message "%s" (mapconcat 'identity (my-flymake-err-at (point)) "\n")))
+
+(defadvice flymake-goto-next-error (after display-message activate compile)
+  (my-flymake-err-echo))
+
+(defadvice flymake-goto-prev-error (after display-message activate compile)
+  (my-flymake-err-echo))
+
+(define-minor-mode my-flymake-minor-mode
+  "Simple minor mode which adds some key bindings for moving to the next and previous errors.
+
+Key bindings:
+
+\\{my-flymake-minor-mode-map}"
+  nil
+  nil
+  :keymap my-flymake-minor-mode-map)
+
+;; Enable this keybinding (my-flymake-minor-mode) by default
+;; Added by Hartmut 2011-07-05
+(add-hook 'haskell-mode-hook 'my-flymake-minor-mode)
+;---------------------------------------
+
+ 
+;;==========================
   (setq erlang-compile-extra-opts
         (list '(i . "./include")
               'export_all

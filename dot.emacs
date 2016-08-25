@@ -1,3 +1,8 @@
+;(setq wcy-leader-key-mode nil)
+(add-to-list 'compilation-search-path "~/d/working/ejabberd")
+(setq compile-command "cd ~/d/working/ejabberd; make -k") 
+;;(setq compile-command "cd ~/d/working/ejabberd; ./rebar compile") 
+;;(setq default-directory "/home/zjh/d/working/ejabberd")
 (when (display-graphic-p)
   (setq fonts
         (cond ((eq system-type 'darwin)     '("Monaco"     "STHeiti"))
@@ -12,8 +17,10 @@
                       (font-spec :family (car (cdr fonts))))))
 
 ;;(add-to-list 'exec-path "/usr/local/Cellar/erlang/R17.5/bin")
-(add-to-list 'exec-path "/usr/local/Cellar/erlang/R18.0/bin")
-(add-to-list 'exec-path "/usr/local/bin")
+;(add-to-list 'exec-path "/usr/local/Cellar/erlang/R18.0/bin")
+(add-to-list 'exec-path "/usr/lib/erlang/bin")
+;;(add-to-list 'exec-path "/usr/local/bin")
+(add-to-list 'exec-path "/usr/bin")
 (setenv "PATH" (mapconcat 'identity exec-path ":"))
 (setenv "MY_EMACS_HOME" (or (getenv "MY_EMACS_HOME")
                             (concat (getenv "HOME")  "/d/working/wcy_dot_emacs")))
