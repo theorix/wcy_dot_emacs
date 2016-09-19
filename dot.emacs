@@ -1,7 +1,7 @@
 ;(setq wcy-leader-key-mode nil)
 (add-to-list 'compilation-search-path "~/d/working/ejabberd")
-(setq compile-command "cd ~/d/working/ejabberd; make -k") 
-;;(setq compile-command "cd ~/d/working/ejabberd; ./rebar compile") 
+(setq compile-command "cd ~/d/working/ejabberd; make -k")
+;;(setq compile-command "cd ~/d/working/ejabberd; ./rebar compile")
 ;;(setq default-directory "/home/zjh/d/working/ejabberd")
 (when (display-graphic-p)
   (setq fonts
@@ -35,6 +35,7 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(safe-local-variable-values (quote ((allout-layout . t))))
  '(show-paren-mode t)
  '(tool-bar-mode nil))
 (custom-set-faces
@@ -42,9 +43,11 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(flymake-errline ((((class color)) (:underline "red"))))
+ '(flymake-warnline ((((class color)) (:underline "yellow")))))
 ;; Local Variables:
 ;; mode:emacs-lisp
 ;; coding: undecided-unix
 ;; End:
 (set-default 'cursor-type 'box)
+(put 'upcase-region 'disabled nil)

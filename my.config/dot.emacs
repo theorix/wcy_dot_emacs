@@ -44,6 +44,7 @@
  ;;"C-v" 'yank
  "<f7>" 'compile
  "M-`" 'next-error
+ "C-s" 'isearch-forward-regexp
  "<C-s-268632070>"  'toggle-fullscreen
  )
 (defun toggle-fullscreen ()
@@ -136,10 +137,10 @@
 	`(
 	  ("\\" ,@(wcy-make-keymap
 		    `(
-		      ("\\" .
-		       (lambda ()
-			(interactive)
-			(switch-to-buffer (other-buffer))))
+		      ;("\\" .
+		       ;(lambda ()
+			;(interactive)
+			;(switch-to-buffer (other-buffer))))
 		      ("b" . iswitchb-buffer)
 		      ("c" . kill-ring-save)
 		      ("d" . nil)
@@ -413,7 +414,7 @@ main(_) ->
 (set-mouse-color "gold1")
 ;设置标题
 (setq frame-title-format
-        '("  dp - Emacs   -   [ " (buffer-file-name "%f \]"
+        '("- Emacs  -   [ " (buffer-file-name "%f \]"
                 (dired-directory dired-directory "%b \]"))))
 ;设置启动大小
 (set-frame-size (selected-frame) 170 44)
