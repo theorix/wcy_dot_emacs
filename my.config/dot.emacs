@@ -363,7 +363,13 @@ main(_) ->
     ToolPath = code:lib_dir(tools),
     RootDir = code:root_dir(),
     io:format(\"(setq erlang-root-dir ~p)~n\",[RootDir]),
-    ElangModePath = filename:join(ToolPath, \"emacs\"),
+    ExecPath = filename:join(RootDir, \"bin\"),
+    ManPath = filename:join(RootDir, \"man\"),
+    io:format(\"(add-to-list 'exec-path ~p)~n\",[ExecPath]),
+    io:format(\"(setq erlang-man-root-dir ~p)~n\",[ManPath]),
+    ElangModePath = filename:join(ToolPath,
+\"emacs\"),file:write_file(\"/home/zjh/d.log\",io_lib:format(\"~p~n~p~n~p~n~p~n\",[RootDir,ElangModePath,
+ExecPath, ManPath])),
     io:format(\"(add-to-list 'load-path ~p)~n\",[ElangModePath]).
 "))
       (with-temp-buffer
@@ -376,14 +382,17 @@ main(_) ->
         (delete-file temp-file)
         (eval-buffer)
         ))))
+
 (wcy-eval-if-installed "erlang"
+  (require 'erlang-start)
   (require 'erlang)
+  (message "erlang started")
   ;;  this is set properly in the detection period
   ;; (setq erlang-root-dir  "/home2/chunywan/d/local/lib/erlang")
-  (setq inferior-erlang-machine-options
-        (list "-sname"
-              (format "%s" (emacs-pid))
-              "-remsh"
+;;;  (setq inferior-erlang-machine-options
+;;;        (list "-sname"
+;;;              (format "%s" (emacs-pid))
+;;;              "-remsh"
               ;;"ejabberd@localhost"
               ;;"tsung_controller@my"
               ;;"msync2@localhost"
@@ -391,15 +400,16 @@ main(_) ->
               ;; msync_client@localhost
               ;;"message@localhost"
               ;;"ejabberd@wangchunye"
-              "msync@localhost"
-              "-hidden"
-              ))
+              ;;"msync@localhost"
+;;;              "ejabberd@yyb-E450"
+;;;              "-hidden"
+;;;              ))
  ;; (setq compile-command "cd ~/d/working/ejabberd; make -k")
   (setenv "ERL_ROOT" erlang-root-dir)
   (setq user-mail-address (or (getenv "EMAIL") ""))
   (setq erlang-skel-mail-address user-mail-address)
 ;;==erlangmy=====================
-(setq auto-save-default nil);关闭备份文件#xxx# 
+(setq auto-save-default nil);关闭备份文件#xxx#
 (global-set-key "\M-p"  'bs-cycle-previous)
 (global-set-key "\M-n"  'bs-cycle-next)
 (set-face-foreground 'highlight "white")
@@ -421,17 +431,17 @@ main(_) ->
 (setq inhibit-startup-message t);关闭起动时LOGO
 (setq visible-bell t);关闭出错时的提示声
 (setq default-major-mode 'erlang-mode);一打开就起用 text 模式
-(global-font-lock-mode t);语法高亮 
-(auto-image-file-mode t);打开图片显示功能 
-(fset 'yes-or-no-p 'y-or-n-p);以 y/n代表 yes/no 
-(column-number-mode t);显示列号 
-(show-paren-mode t);显示括号匹配 
-(setq mouse-yank-at-point t);支持中键粘贴 
-(transient-mark-mode t);允许临时设置标记 
-(setq x-select-enable-clipboard t);支持emacs和外部程序的粘贴 
+(global-font-lock-mode t);语法高亮
+(auto-image-file-mode t);打开图片显示功能
+(fset 'yes-or-no-p 'y-or-n-p);以 y/n代表 yes/no
+(column-number-mode t);显示列号
+(show-paren-mode t);显示括号匹配
+(setq mouse-yank-at-point t);支持中键粘贴
+(transient-mark-mode t);允许临时设置标记
+(setq x-select-enable-clipboard t);支持emacs和外部程序的粘贴
 ;;-----kill ring 长度
 (setq kill-ring-max 200)
-         
+
 (require 'linum)
 (global-linum-mode 1)
 ;;--------------------------快捷键定义------------------------
@@ -466,17 +476,17 @@ main(_) ->
 ;;-------------------glass style------------------
 
 
-(setq alpha-list '((85 55) (100 100)))  
-  
-(defun loop-alpha ()  
-  (interactive)  
-  (let ((h (car alpha-list)))                  
-    ((lambda (a ab)  
-       (set-frame-parameter (selected-frame) 'alpha (list a ab))  
-       (add-to-list 'default-frame-alist (cons 'alpha (list a ab)))  
-       ) (car h) (car (cdr h)))  
-    (setq alpha-list (cdr (append alpha-list (list h))))  
-    ))  
+(setq alpha-list '((85 55) (100 100)))
+
+(defun loop-alpha ()
+  (interactive)
+  (let ((h (car alpha-list)))
+    ((lambda (a ab)
+       (set-frame-parameter (selected-frame) 'alpha (list a ab))
+       (add-to-list 'default-frame-alist (cons 'alpha (list a ab)))
+       ) (car h) (car (cdr h)))
+    (setq alpha-list (cdr (append alpha-list (list h))))
+    ))
 ;===flymake=======================
 (require 'flymake)
 (defun flymake-erlang-init ()
@@ -543,7 +553,7 @@ Key bindings:
 (add-hook 'haskell-mode-hook 'my-flymake-minor-mode)
 ;---------------------------------------
 
- 
+
 ;;==========================
   (setq erlang-compile-extra-opts
         (list '(i . "./include")
@@ -577,6 +587,7 @@ Key bindings:
     (when (file-exists-p distel-root)
       (let ((dist-el (expand-file-name "elisp" distel-root)))
         (add-to-list 'load-path dist-el)
+        (message "distel setup")
         (require 'distel)
         (distel-setup)
         (defconst distel-shell-keys
