@@ -10,6 +10,12 @@
 (defvar my-elisp-path (expand-file-name "my.elisp" my-emacs-home))
 (defvar my-config-path (expand-file-name "my.config" my-emacs-home))
 (defvar my-data-path (expand-file-name "my.data" my-emacs-home))
+
+(defun refresh-file ()  
+  (interactive)  
+  (revert-buffer t (not (buffer-modified-p)) t))  
+  
+(global-set-key [(control f5)] 'refresh-file)  
 ;; ------------------- MEASURE --------------------------------
 ;; measure the loading time per file.
 (defvar wcy-profile-startup '())

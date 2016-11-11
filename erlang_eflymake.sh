@@ -6,19 +6,26 @@ main([File_Name]) ->
     {ok, Cwd} = file:get_cwd(),
     %%file:write_file("/home/zjh/d/working/1.txt",io_lib:format("~p",[Cwd])),
     BaseDir =
-    case re:run(Cwd, "^(.+)(/src).?", [{capture, [1], list}]) of
+    case re:run(Cwd, "^(.+)(/src|test).?", [{capture, [1], list}]) of
     {match, [B]} ->
 	    B ++ "/";
     nomatch ->
 	    Cwd ++ "/"
     end,
 
-    {ok, Deps} = file:list_dir(BaseDir ++ "deps"),
-    {ok, SrcDirs} = file:list_dir(BaseDir ++ "src"),
+    case file:list_dir(BaseDir ++ "deps") of
+        {ok, Deps} -> ok;
+        _ -> Deps = []
+    end,
+    case file:list_dir(BaseDir ++ "src") of
+        {ok, SrcDirs} -> ok;
+        _ -> SrcDirs = []
+    end,
 
     Includes =
-	[{i, BaseDir ++ "include"}, {i, BaseDir ++ "deps"}, {i, BaseDir ++ "src"},{i,BaseDir ++ "deps/im_libs/apps/message_store/include"}]
-
+	[{i, BaseDir ++ "include"}, {i, BaseDir ++ "deps"}, {i, BaseDir ++ "src"},{i,BaseDir ++ "deps/im_libs/apps/message_store/include"},{i, BaseDir},{i, BaseDir++"tools"}]
+	++
+	[{i, BaseDir ++ "deps/im_libs/apps/msync_proto/include"}]
 	++
 
         [{i, Si} || S <- SrcDirs,
@@ -43,6 +50,7 @@ main([File_Name]) ->
                                   filelib:is_dir(Di)
                               end],
     code:add_patha(BaseDir++"ebin"),
+    code:add_patha(BaseDir),
     compile:file(File_Name, [warn_obsolete_guard, warn_unused_import,
 			     %warnings_as_errors,
                              warn_shadow_vars, warn_export_vars,
