@@ -11,11 +11,42 @@
 (defvar my-config-path (expand-file-name "my.config" my-emacs-home))
 (defvar my-data-path (expand-file-name "my.data" my-emacs-home))
 
-(defun refresh-file ()  
-  (interactive)  
-  (revert-buffer t (not (buffer-modified-p)) t))  
-  
-(global-set-key [(control f5)] 'refresh-file)  
+(defun refresh-file ()
+  (interactive)
+  (revert-buffer t (not (buffer-modified-p)) t))
+(setq shell-file-name "/bin/bash")
+(global-set-key [(control f5)] 'refresh-file)
+(add-hook 'comint-output-filter-functions 'comint-watch-for-password-prompt)
+
+(global-set-key (kbd "C-c z") 'shell)
+(global-set-key (kbd "<f10>") 'rename-buffer)
+(autoload 'ansi-color-for-comint-mode-on "ansi-color" nil t)
+(add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on t)
+(when (fboundp 'winner-mode)
+  (winner-mode)
+  (windmove-default-keybindings))
+(defun rename-buffer-in-ssh-login (cmd)
+  "Rename buffer to the destination hostname in ssh login"
+  (if (string-match "ssh [-_a-z0-9A-Z]+@[-_a-z0-9A-Z.]+[ ]*[^-_a-z0-9-A-Z]*$" cmd)
+      (let (( host (nth 2 (split-string cmd "[ @\n]" t) )))
+        (rename-buffer (concat "*" host)) ;
+        (add-to-list 'shell-buffer-name-list (concat "*" host));
+        (message "%s" shell-buffer-name-list)
+        )
+    )
+  )
+(add-hook 'comint-input-filter-functions 'rename-buffer-in-ssh-login)
+(defun kill-shell-buffer(process event)
+  "The one actually kill shell buffer when exit. "
+  (kill-buffer (process-buffer process))
+  )
+
+(defun kill-shell-buffer-after-exit()
+  "kill shell buffer when exit."
+  (set-process-sentinel (get-buffer-process (current-buffer))
+                        #'kill-shell-buffer)
+  )
+(add-hook 'shell-mode-hook 'kill-shell-buffer-after-exit t)
 ;; ------------------- MEASURE --------------------------------
 ;; measure the loading time per file.
 (defvar wcy-profile-startup '())
@@ -89,7 +120,8 @@
         (color-theme-solarized-light))))))
 (set-default 'tab-width 4)
 (set-default 'indent-tabs-mode nil)
-(add-hook 'before-save-hook 'delete-trailing-whitespace t nil)
+;;(add-hook 'before-save-hook 'delete-trailing-whitespace t nil)
+(remove-hook 'before-save-hook 'delete-trailing-whitespace)
 (add-to-list 'minor-mode-alist '(mark-active " Mark"))
 (defalias 'yes-or-no-p #'y-or-n-p)
 (defvar wcy-leader-key-mode t
@@ -374,8 +406,8 @@ main(_) ->
     io:format(\"(add-to-list 'exec-path ~p)~n\",[ExecPath]),
     io:format(\"(setq erlang-man-root-dir ~p)~n\",[ManPath]),
     ElangModePath = filename:join(ToolPath,
-\"emacs\"),file:write_file(\"/home/zjh/d.log\",io_lib:format(\"~p~n~p~n~p~n~p~n\",[RootDir,ElangModePath,
-ExecPath, ManPath])),
+\"emacs\"),file:write_file(\"/home/zou/d.log\",io_lib:format(\"~p~n~p~n~p~n~p~npwd=~p~n\",[RootDir,ElangModePath,
+ExecPath, ManPath, file:get_cwd()])),
     io:format(\"(add-to-list 'load-path ~p)~n\",[ElangModePath]).
 "))
       (with-temp-buffer
@@ -395,26 +427,26 @@ ExecPath, ManPath])),
   (message "erlang started")
   ;;  this is set properly in the detection period
   ;; (setq erlang-root-dir  "/home2/chunywan/d/local/lib/erlang")
-;;;  (setq inferior-erlang-machine-options
-;;;        (list "-sname"
-;;;              (format "%s" (emacs-pid))
-;;;              "-remsh"
-              ;;"ejabberd@localhost"
-              ;;"tsung_controller@my"
-              ;;"msync2@localhost"
-              ;;"message@localhost"
-              ;; msync_client@localhost
-              ;;"message@localhost"
-              ;;"ejabberd@wangchunye"
-              ;;"msync@localhost"
-;;;              "ejabberd@yyb-E450"
-;;;              "-hidden"
-;;;              ))
+ ;; (setq inferior-erlang-machine-options
+ ;;       (list "-sname"
+ ;;             (format "%s" (emacs-pid))
+ ;;             "-remsh"
+ ;;              "ejabberd@localhost"
+ ;;              "tsung_controller@my"
+ ;;              "msync2@localhost"
+ ;;              "message@localhost"
+ ;;              msync_client@localhost
+ ;;              "message@localhost"
+ ;;              "ejabberd@wangchunye"
+ ;;              "msync@localhost"
+ ;;             "ejabberd@yyb-E450"
+ ;;             "-hidden"
+ ;;             ))
  ;; (setq compile-command "cd ~/d/working/ejabberd; make -k")
   (setenv "ERL_ROOT" erlang-root-dir)
   (setq user-mail-address (or (getenv "EMAIL") ""))
   (setq erlang-skel-mail-address user-mail-address)
-;;==erlangmy=====================
+  ;;==erlangmy=====================
 (setq auto-save-default nil);关闭备份文件#xxx#
 (global-set-key "\M-p"  'bs-cycle-previous)
 (global-set-key "\M-n"  'bs-cycle-next)
@@ -500,7 +532,7 @@ ExecPath, ManPath])),
 		     'flymake-create-temp-inplace))
 	 (local-file (file-relative-name temp-file
 		(file-name-directory buffer-file-name))))
-    (list "/home/zjh/d/working/wcy_dot_emacs/erlang_eflymake.sh" (list local-file))))
+    (list "/home/zou/d/working/wcy_dot_emacs/erlang_eflymake.sh" (list local-file))))
 
 (add-to-list 'flymake-allowed-file-name-masks '("\\.erl\\'" flymake-erlang-init))
 (add-hook 'find-file-hook 'flymake-find-file-hook)

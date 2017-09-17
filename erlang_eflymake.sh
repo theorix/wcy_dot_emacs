@@ -5,14 +5,19 @@ main([File_Name]) ->
 
     {ok, Cwd} = file:get_cwd(),
     %%file:write_file("/home/zjh/d/working/1.txt",io_lib:format("~p",[Cwd])),
-    BaseDir =
-    case re:run(Cwd, "^(.+)(/src|test).?", [{capture, [1], list}]) of
+    BaseDir0 =
+    case re:run(Cwd, "^(.+)(/src|/test).?", [{capture, [1], list}]) of
     {match, [B]} ->
 	    B ++ "/";
     nomatch ->
 	    Cwd ++ "/"
     end,
-
+    BaseDir = case Cwd of
+                  "/home/zou/d/working/msync"++_ ->
+                      "/home/zou/d/working/msync/";
+                  _ ->
+                      "/home/zou/d/working/ejabberd/"
+              end,
     case file:list_dir(BaseDir ++ "deps") of
         {ok, Deps} -> ok;
         _ -> Deps = []
@@ -26,6 +31,12 @@ main([File_Name]) ->
 	[{i, BaseDir ++ "include"}, {i, BaseDir ++ "deps"}, {i, BaseDir ++ "src"},{i,BaseDir ++ "deps/im_libs/apps/message_store/include"},{i, BaseDir},{i, BaseDir++"tools"}]
 	++
 	[{i, BaseDir ++ "deps/im_libs/apps/msync_proto/include"}]
+    ++
+    [{i, BaseDir ++ "deps/brod/include"}]
+    ++ 
+    [{i, BaseDir ++ "deps/kafka_protocol/include"}]
+    ++
+    [{i, BaseDir ++ "deps/brod/src"}]
 	++
 
         [{i, Si} || S <- SrcDirs,
@@ -43,7 +54,7 @@ main([File_Name]) ->
                                   filelib:is_dir(Di)
                               end],
     %io:format("I:~p",[Includes]),
-    %file:write_file("/home/zjh/d/working/1.txt",io_lib:format("BaseDir=~p~nCwd=~p,~nFileName=~p~n",[BaseDir,Cwd, File_Name])),
+    file:write_file("/home/zou/d/working/1.txt",io_lib:format("BaseDir=~p~nCwd=~p,~nFileName=~p~n,Includes=~p~n",[BaseDir,Cwd, File_Name, Includes])),
     [code:add_patha(Di)||D <- Deps,
                               begin
                                   Di = BaseDir ++ "deps/"++D++"/ebin",

@@ -1,8 +1,9 @@
 ;(setq wcy-leader-key-mode nil)
-(add-to-list 'compilation-search-path "~/d/working/ejabberd")
-(setq compile-command "cd ~/d/working/ejabberd; make -k")
+;(add-to-list 'compilation-search-path "~/d/working/ejabberd")
+;(setq compile-command "cd ~/d/working/ejabberd; make -k")
 ;;(setq compile-command "cd ~/d/working/ejabberd; ./rebar compile")
-;;(setq default-directory "/home/zjh/d/working/ejabberd")
+;;(setq default-directory "/home/zou/d/working/ejabberd")
+
 (when (display-graphic-p)
   (setq fonts
         (cond ((eq system-type 'darwin)     '("Monaco"     "STHeiti"))
@@ -29,7 +30,6 @@
        (concat (getenv "MY_EMACS_HOME") "/my.config")))
 
 (put 'narrow-to-region 'disabled nil)
-
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
